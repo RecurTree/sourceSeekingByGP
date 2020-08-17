@@ -26,7 +26,8 @@ class GPR:
             Kyy = self.kernel(self.train_X, self.train_X) + 1e-8 * np.eye(len(self.train_X))
             MY  = self.mean(train_X)
             #MY=np.asarray(MY)
-            print("mean shape",MY.shape)
+            #print("mean shape",MY.shape)
+            print("w1:",self.params["w_1"],"sigma_f:",self.params["sigma_f"])
             return (self.train_y.T-MY.T).dot(np.linalg.inv(Kyy)).dot(self.train_y-MY) +  np.linalg.slogdet(Kyy)[1] 
 
         if self.optimize:
@@ -47,7 +48,7 @@ class GPR:
         Kyy = self.kernel(X, X)  # (k, k)
         Kfy = self.kernel(self.train_X, X)  # (N, k)
         My  = self.mean(X)
-        MY  = self.mean(train_X)
+        MY  = self.mean(self.train_X)
         Kff_inv = np.linalg.inv(Kff + 1e-8 * np.eye(len(self.train_X)))  # (N, N)
         
         #set u = 0,modufy latter
@@ -59,7 +60,6 @@ class GPR:
         dist_matrix = np.sum(x1**2, 1).reshape(-1, 1) + np.sum(x2**2, 1) - 2 * np.dot(x1, x2.T)
         return self.params["sigma_f"] ** 2 * np.exp(-0.5 / self.params["l"] ** 2 * dist_matrix)      
     def mean(self,X):
-        #print("mean:",np.dot(X, np.asarray([self.params["w_1"],self.params["w_2"]])))
         return np.dot(X, np.asarray([self.params["w_1"],self.params["w_2"]]).T)
         
 def y_2d(x, noise_sigma=0.0):
