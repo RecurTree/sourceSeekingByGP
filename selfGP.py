@@ -10,7 +10,7 @@ class GPR:
     def __init__(self, optimize=True):
         self.is_fit = False
         self.train_X, self.train_y = None, None
-        self.params = {"l": 0.5, "sigma_f": 0.2, "w_1": 0.0, "w_2": 0.0 }
+        self.params = {"l": 0.5, "sigma_f": 1, "w_1": 0.0, "w_2": 0.0 }
         #self.w=np.asarray([self.params["w_1"],self.params["w_2"]])
         #print(self.w)
         self.optimize = optimize
@@ -19,22 +19,22 @@ class GPR:
         # store train data
         self.train_X = np.asarray(X)
         self.train_y = np.asarray(y)
-        self.params["l"], self.params["sigma_f"],self.params["w_1"], self.params["w_2"]=0.2,0.2,0.0,0.0
+        self.params["l"], self.params["sigma_f"],self.params["w_1"], self.params["w_2"]=0.2,1,0.0,0.0
         # hyper parameters optimization
         def negative_log_likelihood_loss(params):
-            self.params["l"], self.params["sigma_f"],self.params["w_1"], self.params["w_2"] = params[0], params[1],params[2], params[3]
+            self.params["l"],self.params["w_1"], self.params["w_2"] = params[0], params[1],params[2]
             Kyy = self.kernel(self.train_X, self.train_X) + 1e-8 * np.eye(len(self.train_X))
-            MY  = self.mean(train_X)
+            MY  = self.mean(self.train_X)
             #MY=np.asarray(MY)
             #print("mean shape",MY.shape)
-            print("w1:",self.params["w_1"],"sigma_f:",self.params["sigma_f"])
+            print("w1:",self.params["w_1"])
             return (self.train_y.T-MY.T).dot(np.linalg.inv(Kyy)).dot(self.train_y-MY) +  np.linalg.slogdet(Kyy)[1] 
 
         if self.optimize:
-            res = minimize(negative_log_likelihood_loss, [self.params["l"], self.params["sigma_f"],self.params["w_1"],self.params["w_2"]],
-                   bounds=((1e-2, 1e2), (1e-2, 1e2),(1e-2, 1e2), (1e-2, 1e2)),
+            res = minimize(negative_log_likelihood_loss, [self.params["l"],self.params["w_1"],self.params["w_2"]],
+                   bounds=((1e-2, 1e2), (1e-1, 1e2), (1e-1, 1e2)),
                    method='L-BFGS-B')
-            self.params["l"], self.params["sigma_f"] ,self.params["w_1"], self.params["w_2"]= res.x[0], res.x[1],res.x[2], res.x[3]
+            self.params["l"], self.params["w_1"], self.params["w_2"]= res.x[0], res.x[1],res.x[2]
 
         self.is_fit = True
 
@@ -60,11 +60,11 @@ class GPR:
         dist_matrix = np.sum(x1**2, 1).reshape(-1, 1) + np.sum(x2**2, 1) - 2 * np.dot(x1, x2.T)
         return self.params["sigma_f"] ** 2 * np.exp(-0.5 / self.params["l"] ** 2 * dist_matrix)      
     def mean(self,X):
-        return np.dot(X, np.asarray([self.params["w_1"],self.params["w_2"]]).T)
+        return np.dot(np.square(X), np.asarray([self.params["w_1"],self.params["w_2"]]).T)
         
 def y_2d(x, noise_sigma=0.0):
     x = np.asarray(x)
-    y = np.linalg.norm(x, axis=1)
+    y = np.linalg.norm(x-sourceP, axis=1)
     y += np.random.normal(0, noise_sigma, size=y.shape)
     return y
 
@@ -76,13 +76,14 @@ def getBeta(time_index):  #time_index!=0
     return 2.0*np.log(gridNumber*time_index**2*np.pi**2/(6.0*delta))
 #-----------
 candidateNodes=[]
-totalSample=15
+totalSample=10
 gridNumber=100*100
 delta=0.2
 noise_sigma=1e-4
+sourceP=[1,4]
 #-----------
 train_X = np.random.uniform(-4, 4, (1, 2)).tolist()   #firtst step
-train_y = y_2d(train_X, noise_sigma=1e-4)
+train_y = y_2d(train_X, noise_sigma)
 trajectory_X=train_X #lsit
 trajectory_Y=train_y 
 
@@ -105,7 +106,7 @@ def findMin(ls):
 
 mu=None
 def addNoise(ls):
-    return np.sqrt(ls[0]**2+ls[1]**2)+np.random.normal(0, noise_sigma)
+    return np.sqrt((ls[0]-sourceP[0])**2+(ls[1]-sourceP[1])**2)+np.random.normal(0, noise_sigma)
 
 for i in range (0,totalSample):    #just cllect totalSmaple's sample
     gpr.fit(trajectory_X, trajectory_Y)
