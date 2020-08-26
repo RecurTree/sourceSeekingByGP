@@ -32,7 +32,7 @@ class GPR:
 
         if self.optimize:
             res = minimize(negative_log_likelihood_loss, [self.params["l"],self.params["w_1"],self.params["w_2"]],
-                   bounds=((1e-2, 1e2), (1e-1, 1e2), (1e-1, 1e2)),
+                   bounds=((1e-2, 1e2), (-1e2, 1e2), (-1e2, 1e2)),
                    method='L-BFGS-B')
             self.params["l"], self.params["w_1"], self.params["w_2"]= res.x[0], res.x[1],res.x[2]
 
@@ -59,8 +59,12 @@ class GPR:
     def kernel(self, x1, x2):
         dist_matrix = np.sum(x1**2, 1).reshape(-1, 1) + np.sum(x2**2, 1) - 2 * np.dot(x1, x2.T)
         return self.params["sigma_f"] ** 2 * np.exp(-0.5 / self.params["l"] ** 2 * dist_matrix)      
+    # def mean(self,X):
+    #     return np.dot(np.square(X), np.asarray([self.params["w_1"],self.params["w_2"]]).T)
+
     def mean(self,X):
-        return np.dot(np.square(X), np.asarray([self.params["w_1"],self.params["w_2"]]).T)
+        return np.linalg.norm(X-np.asarray([self.params["w_1"],self.params["w_2"]]), axis=1)
+
         
 def y_2d(x, noise_sigma=0.0):
     x = np.asarray(x)
@@ -76,11 +80,11 @@ def getBeta(time_index):  #time_index!=0
     return 2.0*np.log(gridNumber*time_index**2*np.pi**2/(6.0*delta))
 #-----------
 candidateNodes=[]
-totalSample=10
+totalSample=5
 gridNumber=100*100
 delta=0.2
-noise_sigma=1e-4
-sourceP=[1,4]
+noise_sigma=1e-2
+sourceP=[-1.0,3.9]
 #-----------
 train_X = np.random.uniform(-4, 4, (1, 2)).tolist()   #firtst step
 train_y = y_2d(train_X, noise_sigma)
