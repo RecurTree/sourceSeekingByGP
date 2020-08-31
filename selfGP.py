@@ -2,8 +2,9 @@ from scipy.optimize import minimize
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import cm
-
 from mpl_toolkits.mplot3d import Axes3D
+import random
+import copy
 
 class GPR:
 
@@ -19,15 +20,12 @@ class GPR:
         # store train data
         self.train_X = np.asarray(X)
         self.train_y = np.asarray(y)
-        self.params["l"], self.params["sigma_f"],self.params["w_1"], self.params["w_2"]=0.2,1,0.0,0.0
+        #self.params["l"], self.params["sigma_f"],self.params["w_1"], self.params["w_2"]=0.2,1,0.0,0.0
         # hyper parameters optimization
         def negative_log_likelihood_loss(params):
             self.params["l"],self.params["w_1"], self.params["w_2"] = params[0], params[1],params[2]
-            Kyy = self.kernel(self.train_X, self.train_X) + 1e-8 * np.eye(len(self.train_X))
+            Kyy = self.kernel(self.train_X, self.train_X) + noise_sigma**2 * np.eye(len(self.train_X))
             MY  = self.mean(self.train_X)
-            #MY=np.asarray(MY)
-            #print("mean shape",MY.shape)
-            print("w1:",self.params["w_1"])
             return (self.train_y.T-MY.T).dot(np.linalg.inv(Kyy)).dot(self.train_y-MY) +  np.linalg.slogdet(Kyy)[1] 
 
         if self.optimize:
@@ -72,10 +70,6 @@ def y_2d(x, noise_sigma=0.0):
     y += np.random.normal(0, noise_sigma, size=y.shape)
     return y
 
-
-
-
-
 def getBeta(time_index):  #time_index!=0
     return 2.0*np.log(gridNumber*time_index**2*np.pi**2/(6.0*delta))
 #-----------
@@ -83,8 +77,8 @@ candidateNodes=[]
 totalSample=5
 gridNumber=100*100
 delta=0.2
-noise_sigma=1e-2
-sourceP=[-1.0,3.9]
+noise_sigma=1e-1
+sourceP=[-1.0,-4.0]
 #-----------
 train_X = np.random.uniform(-4, 4, (1, 2)).tolist()   #firtst step
 train_y = y_2d(train_X, noise_sigma)
@@ -116,16 +110,32 @@ for i in range (0,totalSample):    #just cllect totalSmaple's sample
     gpr.fit(trajectory_X, trajectory_Y)
     mu, cov = gpr.predict(test_X)
     minIndex,minMu=findMin(mu)
-    # print("minIndex:%d"%minIndex)
-    # print("minMu:%.2f"%minMu)
-    
     trajectory_X.append(test_X[minIndex])
-    #print(test_X[minIndex])
     new_y=(addNoise(test_X[minIndex]))
     trajectory_Y = trajectory_Y.tolist()
     trajectory_Y.append(new_y)
-    #print("tjy",trajectory_Y)
     trajectory_Y=np.asarray(trajectory_Y).T
+
+#this part for 90 policy
+# new_pos=[0,0]
+# ranJiao=0.0
+# stepLength=0.5
+# for i in range (0,2):    #just cllect totalSmaple's sample
+#     gpr.fit(trajectory_X, trajectory_Y)
+#     mu, cov = gpr.predict(test_X)
+#     if(i==0):
+#        ranJiao=random.randint(0,360)*np.pi/180.0
+#        new_pos[0]=trajectory_X[i][0]+stepLength*np.cos(ranJiao)
+#        new_pos[1]=trajectory_X[i][1]+stepLength*np.sin(ranJiao)
+#     else:
+#        new_pos[0]=new_pos[0]+stepLength*np.sin(ranJiao)
+#        new_pos[1]=new_pos[1]-stepLength*np.cos(ranJiao)
+#     new_p=copy.deepcopy(new_pos)
+#     trajectory_X.append(new_p)
+#     new_y=addNoise(new_pos)
+#     trajectory_Y = trajectory_Y.tolist()
+#     trajectory_Y.append(new_y)
+#     trajectory_Y=np.asarray(trajectory_Y).T
 
 z = mu.reshape(test_d1.shape)
 print(trajectory_X)
@@ -133,7 +143,7 @@ print(trajectory_X)
 fig = plt.figure(figsize=(7, 5))
 ax = Axes3D(fig)
 ax.plot_surface(test_d1, test_d2, z, cmap=cm.coolwarm, linewidth=0, alpha=0.2, antialiased=False)
-ax.scatter(np.asarray(trajectory_X)[:,0], np.asarray(trajectory_X)[:,1], trajectory_Y, c= trajectory_Y, cmap=cm.coolwarm)
+ax.scatter(np.asarray(trajectory_X)[:,0], np.asarray(trajectory_X)[:,1], [0 for i in range(0,len(trajectory_Y))], c= trajectory_Y, cmap=cm.coolwarm)
 ax.contourf(test_d1, test_d2, z, zdir='z', offset=0, cmap=cm.coolwarm, alpha=0.6)
 ax.set_title("l=%.2f sigma_f=%.2f w=[%.2f,%.2f] " % (gpr.params["l"], gpr.params["sigma_f"],gpr.params["w_1"], gpr.params["w_2"]))
 plt.show()
