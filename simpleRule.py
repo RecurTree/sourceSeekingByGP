@@ -29,8 +29,8 @@ ax.spines['bottom'].set_position(('data',0))
 ax.yaxis.set_ticks_position('left')
 ax.spines['left'].set_position(('data',0))
 
-x=[20]
-y=[0]
+x=[6]
+y=[17]
 target=plt.scatter(x, y, marker = 'x',color = 'red', s = 40 ,label = 'target')
 x_u=[2]
 y_u=[2]
@@ -63,7 +63,7 @@ def sign(x):
 trajectory_dis=[]
 step=2
 
-for i in range(1,10):
+for i in range(1,9):
     trajectory.append([x_u[0],y_u[0]])
     dist=calcuDis([x_u[0],y_u[0]],[x[0],y[0]])+random.gauss(mu,sigma)
     print(i,dist)
@@ -75,12 +75,22 @@ for i in range(1,10):
     while row<=size:
         row=row+0.02
         col=-size
+        # while col<=size:
+        #     col=col+0.2
+        #     for j in range(0,i):
+        #         sample_nq=sample_nq+math.pow(calcuDis([row,col],trajectory[j])-trajectory_dis[j],2)
+        #     sample_nq=sample_nq/i
+        #     #if sample_nq<=threshould/math.sqrt(i):
+        #     if sample_nq<=9*sigma**2:
+        #         candidateNodes.append([row,col])
+        #     sample_nq=0
         while col<=size:
             col=col+0.2
             for j in range(0,i):
-                sample_nq=sample_nq+math.pow(calcuDis([row,col],trajectory[j])-trajectory_dis[j],2)
-            sample_nq=sample_nq/i
-            if sample_nq<=threshould/math.sqrt(i):
+                sample_nq=math.pow(calcuDis([row,col],trajectory[j])-trajectory_dis[j],2)
+                if(sample_nq>9*sigma**2):
+                    break
+            if j==i-1:
                 candidateNodes.append([row,col])
             sample_nq=0
     if i==1:
