@@ -29,7 +29,7 @@ ax.spines['bottom'].set_position(('data',0))
 ax.yaxis.set_ticks_position('left')
 ax.spines['left'].set_position(('data',0))
 
-x=[6]
+x=[3]
 y=[17]
 target=plt.scatter(x, y, marker = 'x',color = 'red', s = 40 ,label = 'target')
 x_u=[2]
@@ -41,7 +41,7 @@ sample_nq=0
 true_nu=0
 true_nq=0
 mu = 0
-sigma = 0.1
+sigma = 0.2
 threshould=0.5
 trajectory=[]
 candidateNodes=[]
@@ -63,7 +63,7 @@ def sign(x):
 trajectory_dis=[]
 step=2
 
-for i in range(1,9):
+for i in range(1,2):
     trajectory.append([x_u[0],y_u[0]])
     dist=calcuDis([x_u[0],y_u[0]],[x[0],y[0]])+random.gauss(mu,sigma)
     print(i,dist)
@@ -86,11 +86,13 @@ for i in range(1,9):
         #     sample_nq=0
         while col<=size:
             col=col+0.2
+            count=0
             for j in range(0,i):
                 sample_nq=math.pow(calcuDis([row,col],trajectory[j])-trajectory_dis[j],2)
                 if(sample_nq>9*sigma**2):
                     break
-            if j==i-1:
+                count=count+1
+            if count==i:
                 candidateNodes.append([row,col])
             sample_nq=0
     if i==1:
@@ -99,6 +101,7 @@ for i in range(1,9):
         x_u[0]=x_u[0]+step*2    
     else:
         candiMeanNode=calcuCandiMean()
+        print("candimeanNode",candiMeanNode)
         increX=step*sign(candiMeanNode[0]-x_u[0])
         temp=x_u[0]
         x_u[0]= x_u[0]+increX
@@ -108,7 +111,7 @@ for item in candidateNodes:
     trajectory_y.append(item[1])
 candiSet=plt.scatter(trajectory_x, trajectory_y, marker = 'x',color = 'green', s = 4 ,label = 'uav')
 uav_tra=plt.scatter([trajectory[i][0] for i in range(0,len(trajectory))],[trajectory[i][1] for i in range(0,len(trajectory)) ],marker = '*',color = 'blue', s = 4 ,label = 'uav')
-print(trajectory)     
+print(trajectory)  
 plt.show()
 
 
