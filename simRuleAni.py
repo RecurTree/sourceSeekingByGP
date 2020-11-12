@@ -34,8 +34,8 @@ ax.spines['bottom'].set_position(('data',0))
 ax.yaxis.set_ticks_position('left')
 ax.spines['left'].set_position(('data',0))
 
-x=[9]
-y=[6]
+x=[5]
+y=[18]
 target=plt.scatter(x, y, marker = 'x',color = 'red', s = 40 ,label = 'target')
 x_u=[2]
 y_u=[2]
@@ -123,7 +123,7 @@ def update(frame):
     else:
         candiMeanNode=calcuCandiMeanByw()
         print("candimeanNode",candiMeanNode)
-        theta=math.atan((candiMeanNode[1]-y_u[0])/(candiMeanNode[0]-x_u[0]))
+        theta=math.atan2(candiMeanNode[1]-y_u[0],candiMeanNode[0]-x_u[0])
         x_u[0]= x_u[0]+consSpeed*cos(theta)*frequency_s/1000.0
         y_u[0]= y_u[0]+consSpeed*sin(theta)*frequency_s/1000.0
     scat.set_offsets(candidateNodes+trajectory)  #设置偏置
