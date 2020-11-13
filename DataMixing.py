@@ -33,3 +33,6 @@ if __name__=="__main__":
     print("truedis=",trudis,"\n")
     print("estdis=",est_middis,"\n")
     print("oberdis=",oberdis[k],"\n")
+    print("|truedis-estdis|=",abs(trudis-est_middis),"\n")
+    print("|truedis-oberdis|=",abs(trudis-oberdis[k]),"\n")
+    print("error decrease =",abs(trudis-est_middis)/abs(trudis-oberdis[k]),"\n")
