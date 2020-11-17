@@ -20,13 +20,13 @@ oberdis=[0.0 for i in range(0,2*k+1)]
 for i in range(0,2*k+1):
     dist=calcuDis([x_u[i],y_u[i]],[x[0],y[0]])+random.gauss(0,sigma)
     oberdis[i]=dist
-print(oberdis)
+#print(oberdis)
 
 def linearTrajeMixing():
     A=0
     for i in range(0,2*k+1):
         A+=math.pow(oberdis[i],2)
-    return math.sqrt(A/(2*k+1)-(k+1)*k/3*deltal**2-1)
+    return math.sqrt(A/(2*k+1)-(k+1)*k/3*deltal**2-1*sigma**2)
 if __name__=="__main__":
     est_middis=linearTrajeMixing()
     trudis=calcuDis([x_u[k],y_u[k]],[x[0],y[0]])
