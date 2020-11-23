@@ -2,11 +2,11 @@ import math
 import numpy as np
 import random
 
-vtracking=[2.0,0.0]
-vtrackingVertical=[0.0,2.0]
-vsource=[1.0,3]
-k=60
-deltaT=0.1 #100ms sample once
+vtracking=[0.3,0]
+vtrackingVertical=[0.0,0.3]
+vsource=[3.0,4.0]
+k=10
+deltaT=0.5 #100ms sample once
 sigma=0.2
 x=[10.0]
 y=[10.0]
