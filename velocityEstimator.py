@@ -5,11 +5,11 @@ import random
 vtracking=[0.3,0]
 vtrackingVertical=[0.0,0.3]
 vsource=[3.0,4.0]
-k=10
-deltaT=0.5 #100ms sample once
-sigma=0.2
-x=[10.0]
-y=[10.0]
+k=2
+deltaT=1#100ms sample once
+sigma=0.04
+x=[5.0]
+y=[5.0]
 
 x_u=[0.0]
 y_u=[0.0]

@@ -65,7 +65,9 @@ candidateNodes=[]
 # 散点图绘制
 scat = ax.scatter(trajectory_x, trajectory_y, marker = 'x',color = 'green', s = 4 ,label = 'uav')
 i=0
-frequency_s=70
+frequency_s=10    #10ms就更新一下图
+sensPeriod=200    #200ms进行测距
+countPeriod=sensPeriod/frequency_s      
 consSpeed=5
 
 #添加缓冲队列
