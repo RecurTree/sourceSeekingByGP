@@ -32,15 +32,15 @@ ax.yaxis.set_ticks_position('left')
 ax.spines['left'].set_position(('data',0))
 
 #源点初始位置
-x=[-1]
+x=[1]
 y=[4]
 #源点速度大小
 s_vx=[0.0]
-s_vy=[-0.0]
+s_vy=[0.0]
 target=plt.scatter(x, y, s=200,marker = 'o',color = 'red', label = 'target')
 #追踪无人机初始位置
-x_u=[2]
-y_u=[2]
+x_u=[-2]
+y_u=[1]
 #追踪无人机行走过的路径
 trajectory_x=[]
 trajectory_y=[]

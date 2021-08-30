@@ -3,13 +3,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import animation
-from pandas._libs.tslibs import timestamps
+from numpy.core.defchararray import count
 from pylab import *
 import math
 import random
 import os
 import pandas as pd
-import seaborn as sns
 
 plt.rcParams['animation.ffmpeg_path'] = u"D:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe"
 #存储路径
@@ -124,15 +123,16 @@ while row<=size:
 def calcuphik(dis):
     return math.sqrt(1.0/(2*k+1)+k*(k+1.0)/(3.0*(2*k+1))*deltal**2/dis**2)
 
+
+
 #存储数据
 log_var={'time step':0,'distance':0}
 log_data=pd.DataFrame(columns=log_var.keys())
 timeStep=0
-csv_path=os.path.dirname(os.path.dirname(__file__))+"\\sourceSeekingByGP\\csv\\usingDataFusion.csv"
-
+csv_path=os.path.dirname(os.path.dirname(__file__))+"\\sourceSeekingByGP\\csv\\NoUsingDataFusion.csv"
+timeStep=0
 def update(frame):
-    global trajectory_x,trajectory_y,candidateNodes,i,consSpeed,trajectory_sample_x,log_data
-    global trajectory_sample_y,trajectory_sample,count_k,k,consSpeed_x,consSpeed_y,consSpeed,deltal,timeStep
+    global trajectory_x,trajectory_y,candidateNodes,i,sample_nu,consSpeed,trajectory_sample_x,trajectory_sample_y,trajectory_sample,count_k,k,consSpeed_x,consSpeed_y,consSpeed,deltal,timeStep,log_data
     trajectory.append([x_u[0],y_u[0]])
     if i%countPeriod==0:    #执行测距
         dist=calcuDis([x_u[0],y_u[0]],[x[0],y[0]])+random.gauss(mu,sigma)
@@ -146,29 +146,14 @@ def update(frame):
         log_data.to_csv(csv_path,index=False)
         if count_k==k:
             trajectory_fusion_pos.append([x_u[0]-s_vx[0]*(i-k)*frequency_s/1000,y_u[0]-s_vy[0]*(i-k)*frequency_s/1000])
-        elif count_k==total_k-1:    #开始进行数据融合
-            #fusion data
-            fusion_dis=linearTrajeMixing(k)
-            if fusion_dis<0.1:
-                return scat
-            trajectory_fusion_dis.append(fusion_dis)
-            count_k=0
-            #候选集合筛选
-            sigma_t=calcuphik(dist)*3*sigma
-            #print("before",len(candidateNodes),"\n")
+        elif count_k==total_k-1:    #开始进行筛选
             temp=[]
             for item in candidateNodes:
-                if abs(calcuDis(trajectory_fusion_pos[-1],item)-trajectory_fusion_dis[-1])>sigma_t:
+                sample_nq=math.pow(calcuDis(item,trajectory_fusion_pos[-1])-trajectory_dis[k],2)
+                if(sample_nq>9*sigma**2):
                     temp.append(item)
-                else:
-                    continue
             for item in temp:
                 candidateNodes.remove(item)
-            # print("sigma_t",sigma_t,"\n")
-            # print("after",len(candidateNodes),"\n")
-            # print("oberserve:",trajectory_dis,"\n")
-            # print("fusion:",trajectory_fusion_dis[-1],"\n")
-            # print("truedis:",calcuDis(trajectory_fusion_pos[-1],[x[0],y[0]]),"\n")
             update_w(trajectory_dis[k],trajectory_fusion_pos[-1])
             candiMeanNode=calcuCandiMeanByw()
             candiMeanNode[0]=candiMeanNode[0]+s_vx[0]*(i-k)*frequency_s/1000+s_vx[0]*dist/consSpeed
@@ -180,6 +165,7 @@ def update(frame):
             deltal=calcuDis([s_vx[0],s_vy[0]],[consSpeed_x,consSpeed_y])*sensPeriod/1000
             trajectory_dis.clear()    #存满2k+1就释放
             trajectory_dis.append(dist)
+            count_k=0
         count_k=count_k+1
     i=i+1
     #追踪无人机位置改变
@@ -200,9 +186,7 @@ def update(frame):
     for item in candidateNodes:
         candidateNodes_exp.append([item[0]+s_vx[0]*(i-k)*frequency_s/1000,item[1]+s_vy[0]*(i-k)*frequency_s/1000])
     scat.set_offsets(candidateNodes_exp)  #设置偏置
-animate = FuncAnimation(fig, update, frames = 2000, interval=frequency_s,repeat=False)#interval是每隔多少毫秒更新一次，可以查看help
+animate = FuncAnimation(fig, update, frames = 20, interval=frequency_s)#interval是每隔多少毫秒更新一次，可以查看help
 #FFwriter = animation.FFMpegWriter(fps=40)  #frame per second帧每秒
-#animate.save('autoSeekingdynamic.mp4', writer=FFwriter, dpi=180)#设置分辨率
-
+#animate.save('autoSeekingdynamic.mp4', writer=FFwriter,dpi=180)#设置分辨率
 plt.show()
-
