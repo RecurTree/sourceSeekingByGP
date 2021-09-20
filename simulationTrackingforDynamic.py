@@ -9,8 +9,8 @@ import math
 import random
 import os
 import pandas as pd
-import seaborn as sns
 
+matplotlib.rcParams.update({"font.size":25})
 plt.rcParams['animation.ffmpeg_path'] = u"D:\\ffmpeg\\ffmpeg-20200831-4a11a6f-win64-static\\bin\\ffmpeg.exe"
 #存储路径
 os.chdir("d:\\ffmpeg") 
@@ -27,12 +27,20 @@ plt.xticks(range(-size, size, 2))
 plt.ylim(-size, size)  
 plt.yticks(range(-size, size, 2))  
 ax = gca()
-ax.spines['right'].set_color('none')
-ax.spines['top'].set_color('none')
-ax.xaxis.set_ticks_position('bottom')
-ax.spines['bottom'].set_position(('data',0))
-ax.yaxis.set_ticks_position('left')
-ax.spines['left'].set_position(('data',0))
+ax.spines['right'].set_color('black')
+ax.spines['top'].set_color('black')
+ax.spines['bottom'].set_color("black")
+ax.spines['left'].set_color("black")
+ax.spines['right'].set_linewidth(5)
+ax.spines['top'].set_linewidth(5)
+ax.spines['bottom'].set_linewidth(5)
+ax.spines['left'].set_linewidth(5)
+
+# ax.xaxis.set_ticks_position('bottom')
+# ax.spines['bottom'].set_position(('data',0))
+# ax.yaxis.set_ticks_position('left')
+# ax.spines['left'].set_position(('data',0))
+
 
 #源点初始位置
 x=[-1]
@@ -40,10 +48,11 @@ y=[4]
 #源点速度大小
 s_vx=[1.5]
 s_vy=[-1.5]
-target=ax.scatter(x[0], y[0], s=200, marker = 'o',color = 'red', label = 'target')
+target=ax.scatter(x[0], y[0], s=500, marker = 'o',color = 'red', label = 'target',zorder=3)
 #追踪无人机初始位置
 x_u=[0]
 y_u=[-2]
+source_trajectory=[]
 #追踪无人机行走过的路径
 trajectory_x=[]
 trajectory_y=[]
@@ -73,8 +82,10 @@ trajectory_dis=[]
 candidateNodes=[]
 
 # 散点图绘制
-scat = ax.scatter(trajectory_x, trajectory_y, marker = 'o',color = 'green', s = 20 ,label = 'uav')
-scat_uav=ax.scatter(x_u[0], y_u[0], marker = 'o',color = 'black', s = 200 ,label = 'uav')
+scat = ax.scatter([], [], marker = 'o',color = 'green', s = 20 ,label = 'candidate set')  
+scat_uav_trajectory=ax.scatter([], [], marker = 'o',color = 'blue', s = 200 ,label = 'uav trajectory') 
+scat_source_trajectory=ax.scatter([], [], marker = 'o',color = 'purple', s = 200 ,label = 'source trajectory') 
+scat_uav=ax.scatter(x_u[0], y_u[0], marker = 'o',color = 'black', s = 500 ,label = 'uav')
 i=0
 frequency_s=10    #10ms就更新一下图
 sensPeriod=20   #测距周期ms
@@ -128,7 +139,7 @@ def calcuphik(dis):
 log_var={'time step':0,'distance':0}
 log_data=pd.DataFrame(columns=log_var.keys())
 timeStep=0
-csv_path=os.path.dirname(os.path.dirname(__file__))+"\\sourceSeekingByGP\\csv\\usingDataFusion.csv"
+csv_path=os.path.dirname(os.path.dirname(__file__))+"\\sourceSeekingByGP\\csv\\usingDataFusionTemp.csv"
 
 def update(frame):
     global trajectory_x,trajectory_y,candidateNodes,i,consSpeed,trajectory_sample_x,log_data
@@ -192,17 +203,21 @@ def update(frame):
     y_u[0]= y_u[0]+consSpeed_y*frequency_s/1000.0
     #源点位置改变
     #scat.set_offsets([x_u[0],y_u[0]])  #设置偏置
+    
     x[0]=x[0]+s_vx[0]*frequency_s/1000.0
     y[0]=y[0]+s_vy[0]*frequency_s/1000.0
+    source_trajectory.append([x[0],y[0]])
     scat_uav.set_offsets([x_u[0],y_u[0]])
     target.set_offsets([x[0],y[0]])
     candidateNodes_exp.clear()
     for item in candidateNodes:
         candidateNodes_exp.append([item[0]+s_vx[0]*(i-k)*frequency_s/1000,item[1]+s_vy[0]*(i-k)*frequency_s/1000])
     scat.set_offsets(candidateNodes_exp)  #设置偏置
+    scat_uav_trajectory.set_offsets(trajectory)
+    scat_source_trajectory.set_offsets(source_trajectory)
+    
 animate = FuncAnimation(fig, update, frames = 2000, interval=frequency_s,repeat=False)#interval是每隔多少毫秒更新一次，可以查看help
-#FFwriter = animation.FFMpegWriter(fps=40)  #frame per second帧每秒
-#animate.save('autoSeekingdynamic.mp4', writer=FFwriter, dpi=180)#设置分辨率
-
+FFwriter = animation.FFMpegWriter(fps=40)  #frame per second帧每秒
+animate.save('autoSeekingdynamic.mp4', writer=FFwriter, dpi=180)#设置分辨率
 plt.show()
 
